@@ -174,12 +174,11 @@
       <h2>🎲 상자 열기 시뮬레이션</h2>
       <div class="sim-controls">
         <label>수량:</label>
-        <input type="number" id="simCount" value="10" min="1" max="9999">
+        <input type="number" id="simCount" value="1" min="1" max="10">
         <button class="btn btn-primary" onclick="runSim()">▶ 시작</button>
         <button class="btn btn-quick" onclick="document.getElementById('simCount').value=1;runSim()">x1</button>
+        <button class="btn btn-quick" onclick="document.getElementById('simCount').value=5;runSim()">x5</button>
         <button class="btn btn-quick" onclick="document.getElementById('simCount').value=10;runSim()">x10</button>
-        <button class="btn btn-quick" onclick="document.getElementById('simCount').value=100;runSim()">x100</button>
-        <button class="btn btn-quick" onclick="document.getElementById('simCount').value=1000;runSim()">x1000</button>
         <button class="btn btn-reset" onclick="resetSim()">초기화</button>
       </div>
 
@@ -431,7 +430,7 @@ const globalCounts = {};
 
 function runSim() {
   const count = parseInt(document.getElementById('simCount').value) || 1;
-  if (count < 1 || count > 9999) return alert('1~9999 사이로 입력해주세요.');
+  if (count < 1 || count > 10) return alert('1~10 사이로 입력해주세요.');
 
   for (let i = 0; i < count; i++) {
     const results = openBox();
