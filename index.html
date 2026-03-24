@@ -615,27 +615,27 @@ function showTab(id) {
   event.target.classList.add('active');
 }
 
-// 실시간 파싱 시도 (같은 도메인에서 열면 동작)
-// async function tryLiveFetch() {
-//   const notice = document.getElementById('dataNotice');
-//   try {
-//     const res = await fetch('https://www.yapcar.co.kr/page/Guide/probability_item.php?item=13', {
-//       headers: { 'X-Requested-With': 'XMLHttpRequest' },
-//       credentials: 'include'
-//     });
-//     const html = await res.text();
-//     if (html && html.includes('빛나는행운상자')) {
-//       notice.innerHTML = '✅ 실시간 데이터 파싱 성공! (최신 확률 반영됨)';
-//       notice.style.borderColor = '#1e3';
-//       notice.style.color = '#8f8';
-//     } else {
-//       throw new Error('no data');
-//     }
-//   } catch(e) {
-//     notice.innerHTML = '📦 내장 데이터 사용 중 (2026-03-24 기준) | 얍카 사이트에서 열면 실시간 파싱 가능';
-//   }
-// }
-notice.innerHTML = '최신 기준 26년3월24일 기준';
+실시간 파싱 시도 (같은 도메인에서 열면 동작)
+async function tryLiveFetch() {
+  const notice = document.getElementById('dataNotice');
+  try {
+    const res = await fetch('https://www.yapcar.co.kr/page/Guide/probability_item.php?item=13', {
+      headers: { 'X-Requested-With': 'XMLHttpRequest' },
+      credentials: 'include'
+    });
+    const html = await res.text();
+    if (html && html.includes('빛나는행운상자')) {
+      notice.innerHTML = '✅ 실시간 데이터 파싱 성공! (최신 확률 반영됨)';
+      notice.style.borderColor = '#1e3';
+      notice.style.color = '#8f8';
+    } else {
+      throw new Error('no data');
+    }
+  } catch(e) {
+    notice.innerHTML = '📦 내장 데이터 사용 중 (2026-03-24 기준)';
+  }
+}
+
 // ============================================================
 // 채팅 알림 (일반-4 아이템 전용)
 // ============================================================
