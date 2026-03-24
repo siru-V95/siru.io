@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>빛나는행운상자 시뮬레이터 | 얍카</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0f131f; color: #dde; font-family: 'Malgun Gothic', sans-serif; font-size: 13px; }
+  h1 { text-align: center; padding: 20px; color: #ffe680; font-size: 20px; border-bottom: 1px solid #2a3050; }
+  .container { max-width: 1100px; margin: 0 auto; padding: 16px; }
+
+  /* 탭 */
+  .tabs { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 12px; }
+  .tab-btn { padding: 6px 14px; background: #1e2540; border: 1px solid #2a3050; color: #aab; cursor: pointer; border-radius: 4px; }
+  .tab-btn.active { background: #0066ff; color: #fff; border-color: #0066ff; }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* 테이블 */
+  table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+  thead th { background: #0f131f; color: #ffe680; padding: 8px; border: 1px solid #2a3050; text-align: center; }
+  tbody td { padding: 6px 10px; border: 1px solid #1e2540; color: #ccd; }
+  tbody tr:hover { background: #1a1f35; }
+  .group-header { background: #1a2540; color: #8af; font-weight: bold; text-align: center; padding: 8px; border: 1px solid #2a3050; }
+
+  /* 확률 바 */
+  .prob-bar { display: inline-block; height: 10px; background: #0066ff; border-radius: 3px; vertical-align: middle; margin-right: 6px; }
+
+  /* 시뮬레이터 */
+  .sim-box { background: #141828; border: 1px solid #2a3050; border-radius: 8px; padding: 20px; margin-bottom: 20px; }
+  .sim-box h2 { color: #ffe680; margin-bottom: 14px; font-size: 16px; }
+  .sim-controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+  .sim-controls label { color: #aab; }
+  .sim-controls input[type=number] { width: 100px; padding: 6px 10px; background: #0f131f; border: 1px solid #3a4060; color: #fff; border-radius: 4px; font-size: 14px; }
+  .btn { padding: 8px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: bold; }
+  .btn-primary { background: #0066ff; color: #fff; }
+  .btn-primary:hover { background: #0055dd; }
+  .btn-reset { background: #444; color: #ccc; }
+  .btn-reset:hover { background: #555; }
+  .btn-quick { background: #1e3; color: #000; }
+
+  /* 결과 */
+  .result-summary { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
+  .result-card { background: #0f131f; border: 1px solid #2a3050; border-radius: 6px; padding: 10px 16px; min-width: 130px; }
+  .result-card .label { color: #778; font-size: 11px; margin-bottom: 4px; }
+  .result-card .value { color: #ffe680; font-size: 20px; font-weight: bold; }
+
+  .result-table-wrap { overflow-x: auto; }
+  .result-table td { font-size: 12px; }
+  .result-table .cnt { color: #ffe680; font-weight: bold; text-align: right; }
+  .result-table .pct { color: #7af; text-align: right; }
+  .group-badge { display: inline-block; padding: 1px 6px; border-radius: 3px; font-size: 11px; margin-right: 4px; }
+  .g1 { background: #1a3060; color: #8af; }
+  .g2 { background: #1a4030; color: #8f8; }
+  .g3 { background: #3a3010; color: #fe8; }
+  .g4 { background: #3a1020; color: #f88; }
+  .g5 { background: #2a1060; color: #c8f; }
+  .gb { background: #3a2000; color: #fc8; }
+
+  .progress-wrap { margin-bottom: 8px; }
+  .progress-bg { background: #1e2540; border-radius: 4px; height: 8px; overflow: hidden; }
+  .progress-fill { height: 8px; background: linear-gradient(90deg,#0066ff,#00ccff); border-radius: 4px; transition: width 0.2s; }
+
+  /* 알림 */
+  .notice { background: #1a2030; border-left: 3px solid #0066ff; padding: 8px 12px; color: #99b; margin-bottom: 12px; font-size: 12px; }
+
+  /* 좌측 상단 채팅 알림 */
+  #chatBox {
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    width: 280px;
+    max-height: 420px;
+    overflow-y: auto;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    pointer-events: all;
+  }
+  #chatBox::-webkit-scrollbar { width: 4px; }
+  #chatBox::-webkit-scrollbar-thumb { background: #ffd700; border-radius: 2px; }
+  .chat-msg {
+    background: #ffd700;
+    color: #ff0000;
+    font-size: 12px;
+    font-weight: bold;
+    padding: 6px 10px;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    animation: slideIn 0.3s ease;
+    text-shadow: none;
+    border-left: 4px solid #ff8800;
+    line-height: 1.5;
+  }
+  .chat-msg .chat-label { font-size: 10px; color: #ff0000; opacity: 0.85; margin-bottom: 2px; }
+  .chat-msg .chat-item { font-size: 13px; color: #ff0000; }
+  .chat-msg .chat-cnt { font-size: 11px; color: #ff0000; opacity: 0.9; }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(-30px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+  @keyframes sparkle {
+    0%   { background: #ffd700; box-shadow: 0 0 6px 2px #ffd700; }
+    20%  { background: #fff700; box-shadow: 0 0 18px 6px #fff176; }
+    40%  { background: #ffe066; box-shadow: 0 0 10px 3px #ffcc00; }
+    60%  { background: #ffffff; box-shadow: 0 0 22px 8px #ffe680; }
+    80%  { background: #ffd700; box-shadow: 0 0 12px 4px #ffd700; }
+    100% { background: #ffd700; box-shadow: 0 0 6px 2px #ffd700; }
+  }
+  .chat-msg.rare {
+    animation: slideIn 0.3s ease, sparkle 1s ease-in-out infinite;
+    border-left: 4px solid #fff;
+    border: 2px solid #fff176;
+  }
+  .chat-msg.rare .chat-label,
+  .chat-msg.rare .chat-item,
+  .chat-msg.rare .chat-cnt {
+    color: #cc0000;
+    font-weight: 900;
+  }
+  .chat-msg.rare .chat-item {
+    font-size: 14px;
+  }
+  #chatClearBtn {
+    position: fixed;
+    top: 12px;
+    left: 302px;
+    z-index: 9999;
+    background: #333;
+    color: #aaa;
+    border: none;
+    border-radius: 4px;
+    padding: 3px 8px;
+    font-size: 11px;
+    cursor: pointer;
+    pointer-events: all;
+  }
+  #chatClearBtn:hover { background: #555; }
+  .loading { text-align: center; color: #7af; padding: 20px; }
+  .error { color: #f88; padding: 8px; }
+
+  /* 확률 표 색 */
+  .high { color: #f88; }
+  .mid { color: #fe8; }
+  .low { color: #8f8; }
+</style>
+</head>
+<body>
+
+<!-- 좌측 상단 채팅 알림 -->
+<div id="chatBox"></div>
+<button id="chatClearBtn" onclick="clearChat()">✕ 지우기</button>
+
+<h1>✨ 빛나는행운상자 시뮬레이터</h1>
+
+<div class="container">
+
+  <div class="notice" id="dataNotice">
+    📡 데이터 로딩 중... (실시간 파싱 시도)
+  </div>
+
+  <!-- 탭 -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="showTab('tab-sim')">🎲 시뮬레이션</button>
+    <button class="tab-btn" onclick="showTab('tab-prob')">📊 확률 정보</button>
+    <button class="tab-btn" onclick="showTab('tab-items')">📦 구성품 목록</button>
+  </div>
+
+  <!-- 시뮬레이션 탭 -->
+  <div id="tab-sim" class="tab-content active">
+    <div class="sim-box">
+      <h2>🎲 상자 열기 시뮬레이션</h2>
+      <div class="sim-controls">
+        <label>수량:</label>
+        <input type="number" id="simCount" value="10" min="1" max="9999">
+        <button class="btn btn-primary" onclick="runSim()">▶ 시작</button>
+        <button class="btn btn-quick" onclick="document.getElementById('simCount').value=1;runSim()">x1</button>
+        <button class="btn btn-quick" onclick="document.getElementById('simCount').value=10;runSim()">x10</button>
+        <button class="btn btn-quick" onclick="document.getElementById('simCount').value=100;runSim()">x100</button>
+        <button class="btn btn-quick" onclick="document.getElementById('simCount').value=1000;runSim()">x1000</button>
+        <button class="btn btn-reset" onclick="resetSim()">초기화</button>
+      </div>
+
+      <div id="simResults" style="display:none">
+        <div class="result-summary" id="simSummary"></div>
+        <div class="result-table-wrap">
+          <table class="result-table">
+            <thead>
+              <tr>
+                <th style="width:40px">순위</th>
+                <th>아이템</th>
+                <th style="width:60px">수량</th>
+                <th style="width:80px">획득 수</th>
+                <th style="width:80px">획득률</th>
+                <th style="width:120px">이론 확률</th>
+              </tr>
+            </thead>
+            <tbody id="simResultBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 확률 정보 탭 -->
+  <div id="tab-prob" class="tab-content">
+    <div class="sim-box">
+      <h2>📊 그룹별 확률 구조</h2>
+      <div class="notice">상자 1개 오픈 시 일반 그룹 중 1개가 선택되며, 보너스 그룹은 항상 지급됩니다.</div>
+      <table>
+        <thead>
+          <tr>
+            <th>그룹명</th>
+            <th>선택 확률</th>
+            <th>확률 바</th>
+            <th>구성품 수</th>
+            <th>특이사항</th>
+          </tr>
+        </thead>
+        <tbody id="groupProbTable"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 구성품 목록 탭 -->
+  <div id="tab-items" class="tab-content">
+    <div class="sim-box">
+      <h2>📦 전체 구성품 목록</h2>
+      <div class="notice">실제 확률 = 그룹 확률 × 그룹 내 확률 (보너스 그룹 제외)</div>
+      <table>
+        <thead>
+          <tr>
+            <th>그룹</th>
+            <th>아이템 이름</th>
+            <th>수량</th>
+            <th>그룹내 확률</th>
+            <th>실제 획득 확률</th>
+          </tr>
+        </thead>
+        <tbody id="allItemsTable"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ============================================================
+// 확률 데이터 (실시간 파싱 실패 시 fallback)
+// ============================================================
+const BOX_DATA = {
+  name: "빛나는행운상자",
+  item_id: 13,
+  groups: [
+    {
+      name: "일반-1", prob: 45.000, isBonus: false,
+      items: [
+        {name:"사파이어",cnt:5,prob:0.717},{name:"철퇴조각",cnt:1000,prob:1.075},
+        {name:"월광석",cnt:100,prob:1.792},{name:"은행이용쿠폰",cnt:1,prob:2.151},
+        {name:"냉동캡슐",cnt:1,prob:1.075},{name:"자유입장쿠폰",cnt:1,prob:1.075},
+        {name:"고장난왕눈이인형+1",cnt:1,prob:0.717},{name:"고장난무명이인형+1",cnt:1,prob:0.358},
+        {name:"고장난얼룩이인형+1",cnt:1,prob:0.358},{name:"고장난태엽이인형+1",cnt:1,prob:0.717},
+        {name:"고장난벤쭈인형+1",cnt:1,prob:0.358},{name:"고장난왕발이인형+1",cnt:1,prob:0.717},
+        {name:"고장난귀염이인형+1",cnt:1,prob:0.717},{name:"고장난깜찍이인형+1",cnt:1,prob:0.717},
+        {name:"강화의불기둥",cnt:1,prob:1.792},{name:"킹카의선물세트",cnt:2,prob:2.151},
+        {name:"금고개설쿠폰",cnt:1,prob:2.151},{name:"프리미엄쿠폰1일",cnt:1,prob:0.717},
+        {name:"강화재료상자",cnt:7,prob:2.151},{name:"장비상자-헬멧",cnt:7,prob:2.151},
+        {name:"장비상자-지팡이",cnt:7,prob:1.434},{name:"장비상자-타이어",cnt:7,prob:0.717},
+        {name:"장비상자-반지",cnt:7,prob:1.434},{name:"다나와상자",cnt:7,prob:1.434},
+        {name:"펫장비상자",cnt:1,prob:0.717},{name:"펫장비상자",cnt:2,prob:0.358},
+        {name:"봉돌블랙상자",cnt:1,prob:0.717},{name:"봉돌블랙상자",cnt:2,prob:0.358},
+        {name:"보석상자",cnt:15,prob:0.717},{name:"부적상자",cnt:15,prob:0.717},
+        {name:"인형상자",cnt:20,prob:0.717},{name:"요리사의비밀상자",cnt:30,prob:1.075},
+        {name:"부품조각",cnt:7,prob:0.717},{name:"장비조각",cnt:10,prob:1.075},
+        {name:"팩토리증표",cnt:1,prob:1.434},{name:"에그머니꾸러미",cnt:2,prob:1.075},
+        {name:"천",cnt:100,prob:1.792},{name:"안경상자[귀속]",cnt:2,prob:1.434},
+        {name:"안경상자[귀속]",cnt:3,prob:0.358},{name:"장삿말쿠폰[귀속]",cnt:50,prob:2.867},
+        {name:"장삿말쿠폰[귀속]",cnt:100,prob:0.717},{name:"이쁜공지쿠폰[귀속]",cnt:50,prob:2.867},
+        {name:"이쁜공지쿠폰[귀속]",cnt:6,prob:2.151},{name:"이쁜공지쿠폰[귀속]",cnt:100,prob:0.717},
+        {name:"조촐한만찬",cnt:1,prob:1.434},{name:"풍성한만찬",cnt:1,prob:1.075},
+        {name:"미니에그머니꾸러미",cnt:3,prob:0.717},{name:"부속함[BD-8]",cnt:1,prob:0.717},
+        {name:"미스틱오일[L]",cnt:1000,prob:1.792},{name:"미스틱오일[S]",cnt:1000,prob:3.226},
+        {name:"미스틱오일[H]",cnt:1000,prob:3.226},{name:"문양교환권[1레벨]",cnt:20,prob:0.717},
+        {name:"기초적부적",cnt:1,prob:1.434},{name:"기초적부적",cnt:2,prob:1.434},
+        {name:"교환권[순금세트]",cnt:1,prob:0.717},{name:"교환권[전갈세트]",cnt:1,prob:0.358},
+        {name:"교환권[비석세트]",cnt:1,prob:0.717},{name:"교환권[피에로세트]",cnt:1,prob:0.717},
+        {name:"교환권[해골세트]",cnt:1,prob:0.717},{name:"교환권[물고기세트]",cnt:1,prob:0.358},
+        {name:"교환권[할레킨세트]",cnt:1,prob:0.717},{name:"기초적패키지",cnt:1,prob:2.509},
+        {name:"제작키트[반가득]",cnt:1,prob:0.358},{name:"인형상자[영웅]",cnt:1,prob:3.226},
+        {name:"인형상자[영웅]",cnt:2,prob:1.792},{name:"부드러운깃털",cnt:2,prob:3.226},
+        {name:"부드러운깃털",cnt:3,prob:1.075},{name:"사신몬의낫",cnt:375,prob:6.450},
+        {name:"사신몬의낫",cnt:500,prob:1.075},{name:"인형의보옥",cnt:1,prob:2.867},
+        {name:"인형의보옥",cnt:2,prob:1.075},{name:"추가기회권",cnt:2,prob:4.301},
+        {name:"10주년만찬",cnt:3,prob:0.717}
+      ]
+    },
+    {
+      name: "일반-2", prob: 17.370, isBonus: false,
+      items: [
+        {name:"삼색구슬",cnt:1,prob:25.000},{name:"삼색구슬",cnt:2,prob:32.252},
+        {name:"삼색구슬",cnt:3,prob:27.554},{name:"삼색구슬",cnt:4,prob:15.194}
+      ]
+    },
+    {
+      name: "일반-3", prob: 25.920, isBonus: false,
+      items: [
+        {name:"신비의시약",cnt:2,prob:10.260},{name:"융합청동원석",cnt:2,prob:10.256},
+        {name:"축전지",cnt:1,prob:5.128},{name:"다나와상자",cnt:10,prob:10.256},
+        {name:"펫장비상자[귀속]",cnt:5,prob:10.256},{name:"봉돌블랙상자",cnt:1,prob:7.692},
+        {name:"설빔선물상자",cnt:1,prob:7.692},{name:"안경상자",cnt:1,prob:5.128},
+        {name:"티켓상자",cnt:1,prob:5.128},{name:"영롱한어항",cnt:1,prob:5.128},
+        {name:"승급석",cnt:1,prob:7.692},{name:"지콘팩[x10]",cnt:4,prob:10.256},
+        {name:"지콘팩[x10]",cnt:5,prob:5.128}
+      ]
+    },
+    {
+      name: "일반-4", prob: 8.210, isBonus: false,
+      items: [
+        {name:"월광석",cnt:2000,prob:1.155},{name:"청경광지팡이[L]",cnt:1,prob:1.000},
+        {name:"청경광지팡이[R]",cnt:1,prob:1.000},{name:"신-학사모",cnt:1,prob:4.643},
+        {name:"고장난박쥐인형+2",cnt:1,prob:2.267},{name:"고장난박쥐인형+3",cnt:1,prob:0.425},
+        {name:"고장난사신인형+2",cnt:1,prob:2.267},{name:"고장난사신인형+3",cnt:1,prob:0.425},
+        {name:"경광등[이벤트]",cnt:1,prob:0.370},{name:"봉인의돌-블랙",cnt:1000,prob:1.250},
+        {name:"애드벌룬",cnt:1,prob:0.565},{name:"학사모",cnt:1,prob:0.725},
+        {name:"고장난무명이인형+3",cnt:1,prob:0.429},{name:"고장난얼룩이인형+3",cnt:1,prob:0.429},
+        {name:"고장난태엽이인형+3",cnt:1,prob:0.616},{name:"고장난벤쭈인형+3",cnt:1,prob:0.429},
+        {name:"고장난왕발이인형+3",cnt:1,prob:0.616},{name:"고장난귀염이인형+3",cnt:1,prob:0.616},
+        {name:"고장난깜찍이인형+3",cnt:1,prob:0.616},{name:"홈사모",cnt:1,prob:1.666},
+        {name:"다이아결혼반지",cnt:1,prob:1.100},{name:"금결혼반지",cnt:1,prob:1.575},
+        {name:"1주년기념주화",cnt:1,prob:2.741},{name:"Pet-뚜러뻥[S]",cnt:1,prob:1.205},
+        {name:"Pet-뚜러뻥반지[S]",cnt:1,prob:1.205},{name:"Pet-뚜러뻥지팡이[S]",cnt:1,prob:1.205},
+        {name:"Pet-뚜러뻥타이어[S]",cnt:1,prob:1.205},{name:"UFO마차",cnt:1,prob:0.523},
+        {name:"대다빈치날개",cnt:1,prob:1.500},{name:"황금철퇴조각",cnt:5,prob:2.481},
+        {name:"정예장비[대천사형]",cnt:1,prob:1.420},{name:"정예장비[대악마형]",cnt:1,prob:1.420},
+        {name:"교환팩[영롱]",cnt:3,prob:1.637},{name:"교환팩[영롱]",cnt:5,prob:0.500},
+        {name:"뭉클주머니",cnt:1000,prob:1.254},{name:"뭉클주머니[x10]",cnt:125,prob:1.254},
+        {name:"정예재료[빛보석]",cnt:1,prob:1.000},{name:"정예재료[요리사]",cnt:5,prob:2.323},
+        {name:"정예도구[요리사]",cnt:2,prob:1.892},{name:"모아모아대박팩",cnt:1,prob:0.999},
+        {name:"마법의토큰",cnt:6300,prob:1.000},{name:"자연의토큰",cnt:6300,prob:1.000},
+        {name:"만능의토큰",cnt:6300,prob:1.000},{name:"모아모아스킬팩",cnt:1,prob:0.894},
+        {name:"모아모아빙수팩",cnt:1,prob:2.942},{name:"정예장비[로얄]",cnt:1,prob:0.696},
+        {name:"기초적패키지",cnt:100,prob:0.822},{name:"빛귀걸이[T1]",cnt:1,prob:0.625},
+        {name:"인형의보옥",cnt:100,prob:1.367},{name:"교환권[모아별빛팩2]",cnt:1,prob:2.697},
+        {name:"교환권[프리미엄부속팩]",cnt:1,prob:1.855},{name:"보석모도팩",cnt:2,prob:2.222},
+        {name:"보석모도팩",cnt:3,prob:1.111},{name:"계묘년쁘띠훈장",cnt:1,prob:2.959},
+        {name:"조각난해금권",cnt:350,prob:3.052},{name:"빛나는MG훈장[귀속]",cnt:1,prob:0.370},
+        {name:"양탄자방석",cnt:1,prob:0.625},{name:"모아모아재료팩",cnt:1,prob:0.538},
+        {name:"푸른여우의상팩",cnt:1,prob:0.551},{name:"버프걱정그만팩",cnt:1,prob:3.358},
+        {name:"염색한천사의날개[빨강]",cnt:1,prob:1.753},{name:"염색한천사의날개[보라]",cnt:1,prob:1.753},
+        {name:"염색한천사의날개[골드]",cnt:1,prob:1.753},{name:"스페셜영웅인형함",cnt:1,prob:1.729},
+        {name:"핫태핫태무기함",cnt:1,prob:1.420},{name:"대가의손길",cnt:1,prob:1.155},
+        {name:"영원의정수",cnt:1,prob:0.929},{name:"영원의정수",cnt:2,prob:0.527},
+        {name:"거래성격변환주문서",cnt:1,prob:2.458},{name:"성장의경험치꾸러미",cnt:1,prob:0.629},
+        {name:"디자인가위",cnt:1,prob:1.637},{name:"킹스젤라임모자",cnt:1,prob:1.420},
+        {name:"투명오라[귀속]",cnt:1,prob:0.711},{name:"투명몬스터가방1[귀속]",cnt:1,prob:0.963},
+        {name:"투명몬스터가방2[귀속]",cnt:1,prob:0.787},{name:"투명몬스터가방3[귀속]",cnt:1,prob:0.744}
+      ]
+    },
+    {
+      name: "일반-5", prob: 3.500, isBonus: false,
+      items: [
+        {name:"영롱한결정체",cnt:1,prob:100.000}
+      ]
+    },
+    {
+      name: "보너스-1", prob: 100.000, isBonus: true,
+      items: [
+        {name:"빛나는토큰",cnt:1,prob:100.000}
+      ]
+    }
+  ]
+};
+
+const GROUP_CLASSES = ['g1','g2','g3','g4','g5','gb'];
+const GROUP_COLORS = ['#1a3060','#1a4030','#3a3010','#3a1020','#2a1060','#3a2000'];
+
+// 누적 확률 미리 계산
+function buildCumulative(items) {
+  const total = items.reduce((s, i) => s + i.prob, 0);
+  let cum = 0;
+  return items.map(item => {
+    cum += item.prob / total * 100;
+    return {...item, cum};
+  });
+}
+
+function pickItem(cumItems) {
+  const r = Math.random() * 100;
+  for (const item of cumItems) {
+    if (r <= item.cum) return item;
+  }
+  return cumItems[cumItems.length - 1];
+}
+
+// 일반 그룹 누적 확률
+const normalGroups = BOX_DATA.groups.filter(g => !g.isBonus);
+const bonusGroups  = BOX_DATA.groups.filter(g => g.isBonus);
+const normalTotal  = normalGroups.reduce((s,g) => s + g.prob, 0);
+let normalCum = 0;
+const normalGroupsCum = normalGroups.map(g => {
+  normalCum += g.prob / normalTotal * 100;
+  return {...g, cum: normalCum, cumItems: buildCumulative(g.items)};
+});
+const bonusCumItems = bonusGroups.map(g => ({...g, cumItems: buildCumulative(g.items)}));
+
+// 상자 1회 오픈
+function openBox() {
+  const results = [];
+  // 일반 그룹
+  const r = Math.random() * 100;
+  for (const g of normalGroupsCum) {
+    if (r <= g.cum) {
+      const item = pickItem(g.cumItems);
+      results.push({group: g.name, groupIdx: normalGroups.indexOf(normalGroups.find(x=>x.name===g.name)), ...item});
+      break;
+    }
+  }
+  // 보너스 그룹
+  for (const g of bonusCumItems) {
+    const item = pickItem(g.cumItems);
+    results.push({group: g.name, groupIdx: 5, ...item});
+  }
+  return results;
+}
+
+// 시뮬레이션 실행
+let totalOpens = 0;
+const globalCounts = {};
+
+function runSim() {
+  const count = parseInt(document.getElementById('simCount').value) || 1;
+  if (count < 1 || count > 9999) return alert('1~9999 사이로 입력해주세요.');
+
+  for (let i = 0; i < count; i++) {
+    const results = openBox();
+    for (const r of results) {
+      const key = `${r.group}__${r.name}__${r.cnt}`;
+      if (!globalCounts[key]) globalCounts[key] = {group:r.group, groupIdx:r.groupIdx, name:r.name, cnt:r.cnt, count:0, theoProbGroup:r.prob};
+      globalCounts[key].count++;
+
+      // 일반-4 아이템이면 채팅 알림
+      if (r.group === '일반-4') {
+        addChatMsg(r.name, r.cnt, totalOpens + 1);
+      }
+    }
+    totalOpens++;
+  }
+
+  renderResults();
+  document.getElementById('simResults').style.display = 'block';
+}
+
+function resetSim() {
+  totalOpens = 0;
+  Object.keys(globalCounts).forEach(k => delete globalCounts[k]);
+  document.getElementById('simResults').style.display = 'none';
+}
+
+function renderResults() {
+  // 요약
+  const items = Object.values(globalCounts);
+  const totalItems = items.reduce((s,i) => s + i.count, 0);
+  document.getElementById('simSummary').innerHTML = `
+    <div class="result-card"><div class="label">총 오픈 횟수</div><div class="value">${totalOpens.toLocaleString()}</div></div>
+    <div class="result-card"><div class="label">총 획득 아이템</div><div class="value">${totalItems.toLocaleString()}</div></div>
+    <div class="result-card"><div class="label">종류 수</div><div class="value">${items.length.toLocaleString()}</div></div>
+  `;
+
+  // 일반 그룹 아이템만 정렬 (보너스 제외)
+  const sorted = [...items].sort((a,b) => b.count - a.count);
+  const normalOpens = totalOpens;
+
+  let html = '';
+  sorted.forEach((item, idx) => {
+    const gClass = GROUP_CLASSES[item.groupIdx] || 'g1';
+    const actualPct = (item.count / normalOpens * 100).toFixed(3);
+    const gProb = item.isBonus ? 100 : (normalGroups[item.groupIdx]?.prob || 0);
+    const theoPct = item.group.includes('보너스') ? item.theoProbGroup.toFixed(3) : (gProb * item.theoProbGroup / 100).toFixed(3);
+    const probBar = Math.min(parseFloat(actualPct) * 3, 100);
+    const probClass = parseFloat(theoPct) >= 5 ? 'high' : parseFloat(theoPct) >= 1 ? 'mid' : 'low';
+    html += `<tr>
+      <td style="text-align:center;color:#778">${idx+1}</td>
+      <td>
+        <span class="group-badge ${gClass}">${item.group}</span>
+        ${item.name}
+      </td>
+      <td style="text-align:center;color:#aab">x${item.cnt.toLocaleString()}</td>
+      <td class="cnt">${item.count.toLocaleString()}회</td>
+      <td class="pct">${actualPct}%</td>
+      <td>
+        <div class="progress-wrap">
+          <div style="color:${parseFloat(theoPct)>=5?'#f88':parseFloat(theoPct)>=1?'#fe8':'#8f8'};font-size:11px">${theoPct}%</div>
+          <div class="progress-bg"><div class="progress-fill" style="width:${probBar}%"></div></div>
+        </div>
+      </td>
+    </tr>`;
+  });
+  document.getElementById('simResultBody').innerHTML = html;
+}
+
+// 확률 정보 탭 렌더링
+function renderProbTable() {
+  let html = '';
+  BOX_DATA.groups.forEach((g, idx) => {
+    const gClass = GROUP_CLASSES[idx];
+    const barW = Math.min(g.prob, 100);
+    html += `<tr>
+      <td><span class="group-badge ${gClass}">${g.name}</span></td>
+      <td style="text-align:center;font-weight:bold;color:${g.isBonus?'#fc8':'#ffe680'}">${g.prob.toFixed(3)}%</td>
+      <td><div class="progress-bg" style="width:200px"><div class="progress-fill" style="width:${barW*2}%"></div></div></td>
+      <td style="text-align:center;color:#aab">${g.items.length}종</td>
+      <td style="color:#778">${g.isBonus?'항상 지급':'일반 추첨'}</td>
+    </tr>`;
+  });
+  document.getElementById('groupProbTable').innerHTML = html;
+}
+
+// 전체 아이템 탭 렌더링
+function renderAllItems() {
+  let html = '';
+  const normalTotal2 = normalGroups.reduce((s,g) => s + g.prob, 0);
+  BOX_DATA.groups.forEach((g, idx) => {
+    const gClass = GROUP_CLASSES[idx];
+    g.items.forEach(item => {
+      const realProb = g.isBonus ? item.prob : (g.prob / normalTotal2 * 100 * item.prob / 100);
+      const probClass = realProb >= 2 ? 'high' : realProb >= 0.5 ? 'mid' : 'low';
+      html += `<tr>
+        <td><span class="group-badge ${gClass}">${g.name}<br><small>${g.prob}%</small></span></td>
+        <td>${item.name}</td>
+        <td style="text-align:center;color:#aab">x${item.cnt.toLocaleString()}</td>
+        <td style="text-align:right;color:#7af">${item.prob.toFixed(3)}%</td>
+        <td style="text-align:right" class="${probClass}">${realProb.toFixed(4)}%</td>
+      </tr>`;
+    });
+  });
+  document.getElementById('allItemsTable').innerHTML = html;
+}
+
+function showTab(id) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// 실시간 파싱 시도 (같은 도메인에서 열면 동작)
+async function tryLiveFetch() {
+  const notice = document.getElementById('dataNotice');
+  try {
+    const res = await fetch('https://www.yapcar.co.kr/page/Guide/probability_item.php?item=13', {
+      headers: { 'X-Requested-With': 'XMLHttpRequest' },
+      credentials: 'include'
+    });
+    const html = await res.text();
+    if (html && html.includes('빛나는행운상자')) {
+      notice.innerHTML = '✅ 실시간 데이터 파싱 성공! (최신 확률 반영됨)';
+      notice.style.borderColor = '#1e3';
+      notice.style.color = '#8f8';
+    } else {
+      throw new Error('no data');
+    }
+  } catch(e) {
+    notice.innerHTML = '📦 내장 데이터 사용 중 (2026-03-24 기준) | 얍카 사이트에서 열면 실시간 파싱 가능';
+  }
+}
+
+// ============================================================
+// 채팅 알림 (일반-4 아이템 전용)
+// ============================================================
+const MAX_CHAT = 50; // 최대 채팅 메시지 수
+
+function addChatMsg(itemName, cnt, openIdx) {
+  const box = document.getElementById('chatBox');
+  const msg = document.createElement('div');
+  const isRare = itemName.includes('빛나는MG훈장');
+  msg.className = 'chat-msg' + (isRare ? ' rare' : '');
+  msg.innerHTML = isRare
+    ? `<div class="chat-label">🌟 희귀 아이템 획득!!</div>
+       <div class="chat-item">💎 ${itemName}</div>
+       <div class="chat-cnt">수량: x${cnt.toLocaleString()} &nbsp;|&nbsp; ${openIdx}번째 오픈</div>`
+    : `<div class="chat-label">🎁 일반-4 아이템 획득!</div>
+       <div class="chat-item">✨ ${itemName}</div>
+       <div class="chat-cnt">수량: x${cnt.toLocaleString()} &nbsp;|&nbsp; ${openIdx}번째 오픈</div>`;
+  box.appendChild(msg);
+
+  // 최대 메시지 수 초과 시 오래된 것 제거
+  while (box.children.length > MAX_CHAT) {
+    box.removeChild(box.firstChild);
+  }
+
+  // 스크롤 최하단
+  box.scrollTop = box.scrollHeight;
+}
+
+function clearChat() {
+  document.getElementById('chatBox').innerHTML = '';
+}
+
+// ============================================================
+// 초기화
+// ============================================================
+renderProbTable();
+renderAllItems();
+tryLiveFetch();
+</script>
+</body>
+</html>
