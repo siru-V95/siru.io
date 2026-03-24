@@ -46,7 +46,8 @@
   .result-card .label { color: #778; font-size: 11px; margin-bottom: 4px; }
   .result-card .value { color: #ffe680; font-size: 20px; font-weight: bold; }
 
-  .result-table-wrap { overflow-x: auto; }
+  .result-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .result-table { min-width: 480px; }
   .result-table td { font-size: 12px; }
   .result-table .cnt { color: #ffe680; font-weight: bold; text-align: right; }
   .result-table .pct { color: #7af; text-align: right; }
@@ -65,20 +66,42 @@
   /* 알림 */
   .notice { background: #1a2030; border-left: 3px solid #0066ff; padding: 8px 12px; color: #99b; margin-bottom: 12px; font-size: 12px; }
 
-  /* 좌측 상단 채팅 알림 */
-  #chatBox {
+  /* 하단 채팅 래퍼 */
+  #chatWrapper {
     position: fixed;
-    top: 12px;
-    left: 12px;
-    width: 280px;
-    max-height: 420px;
-    overflow-y: auto;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    max-width: 320px;
     z-index: 9999;
+    pointer-events: all;
+  }
+  /* 채팅 헤더 (접기/펼치기 바) */
+  #chatHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #1a1a1a;
+    border-top: 2px solid #ffd700;
+    padding: 5px 10px;
+    cursor: pointer;
+    user-select: none;
+  }
+  #chatHeader .chat-title { color: #ffd700; font-size: 12px; font-weight: bold; }
+  #chatHeader .chat-toggle { color: #ffd700; font-size: 12px; }
+  #chatHeader .chat-clear { color: #aaa; font-size: 11px; background: #333; border: none; border-radius: 3px; padding: 2px 6px; cursor: pointer; }
+  #chatHeader .chat-clear:hover { background: #555; }
+  /* 채팅 메시지 목록 */
+  #chatBox {
+    max-height: 240px;
+    overflow-y: auto;
     display: flex;
     flex-direction: column;
     gap: 5px;
-    pointer-events: all;
+    padding: 8px 8px 4px 8px;
+    background: rgba(10,10,20,0.92);
   }
+  #chatBox.hidden { display: none; }
   #chatBox::-webkit-scrollbar { width: 4px; }
   #chatBox::-webkit-scrollbar-thumb { background: #ffd700; border-radius: 2px; }
   .chat-msg {
@@ -123,21 +146,6 @@
   .chat-msg.rare .chat-item {
     font-size: 14px;
   }
-  #chatClearBtn {
-    position: fixed;
-    top: 12px;
-    left: 302px;
-    z-index: 9999;
-    background: #333;
-    color: #aaa;
-    border: none;
-    border-radius: 4px;
-    padding: 3px 8px;
-    font-size: 11px;
-    cursor: pointer;
-    pointer-events: all;
-  }
-  #chatClearBtn:hover { background: #555; }
   .loading { text-align: center; color: #7af; padding: 20px; }
   .error { color: #f88; padding: 8px; }
 
@@ -145,13 +153,72 @@
   .high { color: #f88; }
   .mid { color: #fe8; }
   .low { color: #8f8; }
+
+  /* ==================== 반응형 모바일 ==================== */
+  @media (max-width: 600px) {
+    body { font-size: 12px; }
+
+    h1 { font-size: 15px; padding: 12px 8px; }
+
+    .container { padding: 8px; }
+
+    /* 탭 버튼 */
+    .tabs { gap: 3px; }
+    .tab-btn { padding: 6px 10px; font-size: 12px; flex: 1; text-align: center; }
+
+    /* 시뮬 박스 */
+    .sim-box { padding: 12px 10px; }
+    .sim-box h2 { font-size: 14px; margin-bottom: 10px; }
+
+    /* 컨트롤 버튼 줄 */
+    .sim-controls { gap: 6px; }
+    .sim-controls label { width: 100%; margin-bottom: 2px; }
+    .sim-controls input[type=number] { width: 70px; font-size: 13px; padding: 5px 8px; }
+    .btn { padding: 7px 12px; font-size: 12px; }
+
+    /* 요약 카드 */
+    .result-summary { gap: 8px; }
+    .result-card { flex: 1; min-width: 90px; padding: 8px 10px; }
+    .result-card .value { font-size: 16px; }
+
+    /* 결과 테이블 */
+    .result-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .result-table th, .result-table td { font-size: 11px; padding: 5px 6px; white-space: nowrap; }
+    .result-table thead th:first-child { display: none; }
+    .result-table tbody td:first-child { display: none; }
+
+    /* 확률 바 테이블 */
+    table th, table td { font-size: 11px; padding: 5px 6px; }
+    .progress-bg { width: 80px !important; }
+
+    /* 그룹 배지 */
+    .group-badge { font-size: 10px; padding: 1px 4px; }
+
+    /* 알림 바 */
+    .notice { font-size: 11px; padding: 6px 8px; }
+
+    /* 채팅 래퍼 - 모바일에서 전체 너비 */
+    #chatWrapper { max-width: 100%; }
+    #chatBox { max-height: 160px; }
+    .chat-msg { font-size: 11px; padding: 5px 8px; }
+    .chat-msg .chat-item { font-size: 12px; }
+  }
 </style>
 </head>
 <body>
 
-<!-- 좌측 상단 채팅 알림 -->
-<div id="chatBox"></div>
-<button id="chatClearBtn" onclick="clearChat()">✕ 지우기</button>
+<!-- 하단 채팅 알림 -->
+<div id="chatWrapper">
+  <div id="chatBox"></div>
+  <div id="chatHeader" onclick="toggleChat()">
+    <span class="chat-title">💬 일반-4 획득 알림</span>
+    <span>
+      <button class="chat-clear" onclick="event.stopPropagation(); clearChat()">✕ 지우기</button>
+      &nbsp;
+      <span class="chat-toggle" id="chatToggleIcon">▲ 접기</span>
+    </span>
+  </div>
+</div>
 
 <h1>✨ 빛나는행운상자 시뮬레이터</h1>
 
@@ -208,7 +275,8 @@
     <div class="sim-box">
       <h2>📊 그룹별 확률 구조</h2>
       <div class="notice">상자 1개 오픈 시 일반 그룹 중 1개가 선택되며, 보너스 그룹은 항상 지급됩니다.</div>
-      <table>
+      <div style="overflow-x:auto;-webkit-overflow-scrolling:touch">
+      <table style="min-width:400px">
         <thead>
           <tr>
             <th>그룹명</th>
@@ -220,6 +288,7 @@
         </thead>
         <tbody id="groupProbTable"></tbody>
       </table>
+      </div>
     </div>
   </div>
 
@@ -228,7 +297,8 @@
     <div class="sim-box">
       <h2>📦 전체 구성품 목록</h2>
       <div class="notice">실제 확률 = 그룹 확률 × 그룹 내 확률 (보너스 그룹 제외)</div>
-      <table>
+      <div style="overflow-x:auto;-webkit-overflow-scrolling:touch">
+      <table style="min-width:420px">
         <thead>
           <tr>
             <th>그룹</th>
@@ -240,6 +310,7 @@
         </thead>
         <tbody id="allItemsTable"></tbody>
       </table>
+      </div>
     </div>
   </div>
 
@@ -595,6 +666,18 @@ function addChatMsg(itemName, cnt, openIdx) {
 
 function clearChat() {
   document.getElementById('chatBox').innerHTML = '';
+}
+
+function toggleChat() {
+  const box = document.getElementById('chatBox');
+  const icon = document.getElementById('chatToggleIcon');
+  if (box.classList.contains('hidden')) {
+    box.classList.remove('hidden');
+    icon.textContent = '▲ 접기';
+  } else {
+    box.classList.add('hidden');
+    icon.textContent = '▼ 펼치기';
+  }
 }
 
 // ============================================================
